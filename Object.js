@@ -53,10 +53,18 @@ class Object{
     this.filename = this.id + ".txt";
     this.result = await this.getData();
 
-    fs.writeFile(this.filename, this.result, (error) => {
+    fs.appendFile(this.filename, "\n"+this.result, (error) => {
       if(error) throw error;
-      console.log("Success")
-    })
+
+      console.log("Done");
+    });
+  }
+
+  async start(){
+    let result;
+    setInterval(async () => {
+      result = await this.writeToFile();
+    },2000)
   }
 }
 
