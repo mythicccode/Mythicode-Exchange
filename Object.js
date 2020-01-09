@@ -17,17 +17,13 @@ class Object{
     this.factoryContract = new this.web3.eth.Contract(this.factoryABI, this.factoryAddress);
   }
 
-  // asyncronously initialize all the variables
-  async initialize(){
+  async getData(){
     this.tokenAddress = await this.factoryContract.methods.getTokenWithId(this.id).call();
     this.exchangeAddress = await this.factoryContract.methods.getExchange(this.tokenAddress).call();
 
     this.tokenContract = new this.web3.eth.Contract(this.tokenABI, this.tokenAddress);
     this.exchangeContract = new this.web3.eth.Contract(this.exchangeABI, this.exchangeAddress);
-  }
-
-  async getData(){
-    this.marketCap = await web3.eth.getBalance(this.exchangeAddress);
+    this.marketCap = await this.web3.eth.getBalance(this.exchangeAddress);
 
     try{
       this.numOfTokens = await this.tokenContract.methods.balanceOf(this.exchangeAddress).call()
@@ -50,7 +46,17 @@ class Object{
       this.symbol = "No symbol() method"
     }
 
-    console.log(this.marketCap, this.numOfTokens, this.name, this.symbol)
+    return [this.marketCap, this.numOfTokens, this.name, this.symbol];
+  }
+
+  async writeToFile(){
+    this.filename = this.id + ".txt";
+    this.result = await this.getData();
+
+    fs.writeFile(this.filename, this.result, (error) => {
+      if(error) throw error;
+      console.log("Success")
+    })
   }
 }
 

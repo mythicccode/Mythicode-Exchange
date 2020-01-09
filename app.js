@@ -1,7 +1,7 @@
 const Object = require('./Object')(1);
 
-Object.initialize().then(() => {
-  setInterval(async () => {
-    await Object.getData();
-  },2000);
-});
+
+setInterval(async () => {
+  const result = await Object.writeToFile();
+  console.log(result);
+},2000);
