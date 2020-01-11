@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "@babel/cli": "^7.7.7",
+    "@babel/core": "^7.7.7",
+    "@babel/node": "^7.7.7",
+    "@babel/preset-env": "^7.7.7",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.6.1",
+    "tslint": "^5.20.1",
+    "typescript": "^3.7.4",
+    "web3": "^1.2.4"
+  },
+  "scripts": {
+    "build": "babel applications/server -d dist",
+    "start": "npm run build && nodemon --exec babel-node applications/server",
+    "s": "npx babel-node applications/server/index.js"
+  }
+}

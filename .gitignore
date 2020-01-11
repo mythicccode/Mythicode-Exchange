@@ -1,0 +1,4 @@
+#determines which files get pushed to github
+node_modules
+dist
+
