@@ -3,8 +3,12 @@ const fs = require('fs');
 
 class Object{
   // constructs an object with id
+  // all the static variables are here
   constructor(id){
+    // id is needed to find exchange and token associated with it
     this.id = id;
+
+    // below are all the neccesssary web3 constants
     this.web3 = new Web3('https://mainnet.infura.io/v3/a73e0646d9a04464871e4c7b3510a530');
 
     this.factoryAddress = '0xc0a47dFe034B400B47bDaD5FecDa2621de6c4d95';
@@ -17,6 +21,7 @@ class Object{
     this.factoryContract = new this.web3.eth.Contract(this.factoryABI, this.factoryAddress);
   }
 
+  //all asyncronous variables
   async getData(){
     this.tokenAddress = await this.factoryContract.methods.getTokenWithId(this.id).call();
     this.exchangeAddress = await this.factoryContract.methods.getExchange(this.tokenAddress).call();
@@ -46,9 +51,11 @@ class Object{
       this.symbol = "No symbol() method"
     }
 
+    //this returns an array with all the data acquired from blockchain using web3
     return [this.marketCap, this.numOfTokens, this.name, this.symbol];
   }
 
+  // a methid that writes what getData() returns to a file
   async writeToFile(){
     this.filename = this.id + ".txt";
     this.result = await this.getData();
@@ -60,6 +67,7 @@ class Object{
     });
   }
 
+  // a method that runs writeToFile() method every two seconds to keep requesting data from blockchain and writting it to the file
   async start(){
     let result;
     setInterval(async () => {
