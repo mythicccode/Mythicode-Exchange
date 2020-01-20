@@ -15,6 +15,8 @@ const tokenABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":
 
 const factoryContract = new web3.eth.Contract(factoryABI, factoryAddress);
 
+let now = new Date();
+
 let tokenAddress;
 let exchangeAddress;
 let marketCap;
@@ -26,46 +28,52 @@ let numOfTokens;
 let name;
 let symbol;
 
+let invalid = '0x0000000000000000000000000000000000000000';
+
 export const bigRequest = () => {
     mongoClient.connect(url, (err, client) => {
         const db = client.db('test');
         factoryContract.methods.tokenCount().call().then(async (tokenCount) => {
-              for(let i = 1; i < tokenCount + 1; i++){
+            console.log("number of tokens", tokenCount);
+            for(let i = 1; i < tokenCount + 1; i++){
                 tokenAddress = await factoryContract.methods.getTokenWithId(i).call();
                 exchangeAddress = await factoryContract.methods.getExchange(tokenAddress).call();
-                marketCap = await web3.eth.getBalance(exchangeAddress);
-
-                tokenContract = new web3.eth.Contract(tokenABI, tokenAddress)
-                exchangeContract = new web3.eth.Contract(exchangeABI, exchangeAddress)
-
-                try{
-                  numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call()
+                if (tokenAddress !== invalid || exchangeAddress !== invalid) {
+                    marketCap = await web3.eth.getBalance(exchangeAddress);
+                    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress)
+                    exchangeContract = new web3.eth.Contract(exchangeABI, exchangeAddress)
+                    try{
+                        numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call()
+                    }
+                    catch(error){
+                        numOfTokens = "No balanceOf method"
+                    }
+                    try{
+                        name = await tokenContract.methods.name().call()
+                    }
+                    catch(error){
+                        name = "No name method"
+                    }
+                    try{
+                        symbol = await tokenContract.methods.symbol().call()
+                    }
+                    catch(error){
+                        symbol = "No symbol method"
+                    }
+                    console.log(tokenAddress, exchangeAddress, marketCap, numOfTokens, name, symbol, now, i);
+                    if (numOfTokens > 0 && marketCap > 0) {
+                        db.collection('uniswap').insertOne({
+                            marketCap,
+                            numOfTokens,
+                            name,
+                            symbol,
+                            tokenAddress,
+                            exchangeAddress,
+                            timeStamp: now
+                        })
+                    }
                 }
-                catch(error){
-                  numOfTokens = "No balanceOf method"
-                }
-
-                try{
-                  name = await tokenContract.methods.name().call()
-                }
-                catch(error){
-                  name = "No name method"
-                }
-
-                try{
-                  symbol = await tokenContract.methods.symbol().call()
-                }
-                catch(error){
-                  symbol = "No symbol method"
-                }
-                console.log(tokenAddress, exchangeAddress, marketCap, numOfTokens, name, symbol);
-                db.collection('uniswap').insertOne({
-                    marketCap,
-                    numOfTokens,
-                    name,
-                    symbol
-                })
-              }
+            }
         })
     })
 }
