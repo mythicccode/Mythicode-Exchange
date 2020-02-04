@@ -1,14 +1,17 @@
 {
   "dependencies": {
-    "@babel/cli": "^7.7.7",
-    "@babel/core": "^7.7.7",
-    "@babel/node": "^7.7.7",
-    "@babel/preset-env": "^7.7.7",
-    "nodemon": "^2.0.2",
-    "ts-node": "^8.6.1",
-    "tslint": "^5.20.1",
-    "typescript": "^3.7.4",
-    "web3": "^1.2.4"
+    "@babel/cli": "7.7.7",
+    "@babel/core": "7.7.7",
+    "@babel/node": "7.7.7",
+    "@babel/preset-env": "7.7.7",
+    "express": "4.17.1",
+    "mongodb": "3.5.0",
+    "mongoose": "^5.8.11",
+    "nodemon": "2.0.2",
+    "ts-node": "8.6.1",
+    "tslint": "5.20.1",
+    "typescript": "3.7.4",
+    "web3": "1.2.4"
   },
   "scripts": {
     "build": "babel applications/server -d dist",
