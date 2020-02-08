@@ -1,5 +1,7 @@
 const Web3 = require('web3');
 const web3 = new Web3('https://mainnet.infura.io/v3/a73e0646d9a04464871e4c7b3510a530');
+const mongoClient = require('mongodb').MongoClient
+const url = 'mongodb+srv://basic_user:bakingSoda@sheabutter-em7q8.mongodb.net/test?retryWrites=true&w=majority'
 
 const fs = require('fs');
 
@@ -13,6 +15,8 @@ const tokenABI = [{"constant":true,"inputs":[],"name":"name","outputs":[{"name":
 
 const factoryContract = new web3.eth.Contract(factoryABI, factoryAddress);
 
+let now = new Date();
+
 let tokenAddress;
 let exchangeAddress;
 let marketCap;
@@ -24,37 +28,87 @@ let numOfTokens;
 let name;
 let symbol;
 
-export const bigRequest = () => factoryContract.methods.tokenCount().call().then(async (tokenCount) => {
-  console.log('something is starting here');
-  for(let i = 1; i < tokenCount + 1; i++){
-    tokenAddress = await factoryContract.methods.getTokenWithId(i).call();
-    exchangeAddress = await factoryContract.methods.getExchange(tokenAddress).call();
-    marketCap = await web3.eth.getBalance(exchangeAddress);
+let invalid = '0x0000000000000000000000000000000000000000';
 
-    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress)
-    exchangeContract = new web3.eth.Contract(exchangeABI, exchangeAddress)
+export const bigRequest = () => {
+    mongoClient.connect(url, (err, client) => {
+        const db = client.db('test');
+        factoryContract.methods.tokenCount().call().then(async (tokenCount) => {
+            console.log("number of tokens", tokenCount);
+            for(let i = 1; i < tokenCount + 1; i++){
+                tokenAddress = await factoryContract.methods.getTokenWithId(i).call();
+                exchangeAddress = await factoryContract.methods.getExchange(tokenAddress).call();
+                if (tokenAddress !== invalid || exchangeAddress !== invalid) {
+                    marketCap = await web3.eth.getBalance(exchangeAddress);
+                    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress)
+                    exchangeContract = new web3.eth.Contract(exchangeABI, exchangeAddress)
+                    try{
+                        numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call()
+                    }
+                    catch(error){
+                        numOfTokens = "No balanceOf method"
+                    }
+                    try{
+                        name = await tokenContract.methods.name().call()
+                    }
+                    catch(error){
+                        name = "No name method"
+                    }
+                    try{
+                        symbol = await tokenContract.methods.symbol().call()
+                    }
+                    catch(error){
+                        symbol = "No symbol method"
+                    }
+                    console.log(tokenAddress, exchangeAddress, marketCap, numOfTokens, name, symbol, now, i);
+                    if (numOfTokens > 0 && marketCap > 0) {
+                        db.collection('uniswap').insertOne({
+                            marketCap,
+                            numOfTokens,
+                            name,
+                            symbol,
+                            tokenAddress,
+                            exchangeAddress,
+                            timeStamp: now
+                        })
+                    }
+                }
+            }
+        })
+    })
+}
 
-    try{
-      numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call()
-    }
-    catch(error){
-      numOfTokens = "No balanceOf method"
-    }
-
-    try{
-      name = await tokenContract.methods.name().call()
-    }
-    catch(error){
-      name = "No name method"
-    }
-
-    try{
-      symbol = await tokenContract.methods.symbol().call()
-    }
-    catch(error){
-      symbol = "No symbol method"
-    }
-
-    console.log(tokenAddress, exchangeAddress, marketCap, numOfTokens, name, symbol);
-  }
-})
+//export const bigRequest = () => factoryContract.methods.tokenCount().call().then(async (tokenCount) => {
+////  console.log('something is starting here');
+//  for(let i = 1; i < tokenCount + 1; i++){
+//    tokenAddress = await factoryContract.methods.getTokenWithId(i).call();
+//    exchangeAddress = await factoryContract.methods.getExchange(tokenAddress).call();
+//    marketCap = await web3.eth.getBalance(exchangeAddress);
+//
+//    tokenContract = new web3.eth.Contract(tokenABI, tokenAddress)
+//    exchangeContract = new web3.eth.Contract(exchangeABI, exchangeAddress)
+//
+//    try{
+//      numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call()
+//    }
+//    catch(error){
+//      numOfTokens = "No balanceOf method"
+//    }
+//
+//    try{
+//      name = await tokenContract.methods.name().call()
+//    }
+//    catch(error){
+//      name = "No name method"
+//    }
+//
+//    try{
+//      symbol = await tokenContract.methods.symbol().call()
+//    }
+//    catch(error){
+//      symbol = "No symbol method"
+//    }
+//
+//    console.log(tokenAddress, exchangeAddress, marketCap, numOfTokens, name, symbol);
+//  }
+//})
