@@ -81,7 +81,7 @@ class Object {
   async start() {
     this.interval = setInterval(async () => {
       await this.writeToDB();
-    }, 60000);
+    }, 3600000);
   }
 }
 
