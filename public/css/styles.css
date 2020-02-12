@@ -18,7 +18,7 @@ p{
   box-shadow: 0 2px 5px #ccc;
   padding: 10px;
   width: 90%;
-  height: 180px;
+  height: 200px;
   margin: 16px auto;
 }
 
@@ -29,4 +29,11 @@ p{
 
 .navbar-link{
   color: #eeeeee;
+}
+
+@media ( max-width: 995px){
+  .list-item{
+    height: 400px;
+    text-align: center;
+  }
 }

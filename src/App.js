@@ -17,7 +17,6 @@ function App() {
 
   window.onload = () => {
     getDistinctIds();
-    console.log('loaded');
   }
 
 
