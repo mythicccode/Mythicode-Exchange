@@ -1,16 +1,12 @@
-import {bigRequest} from './uniswap.js'
-const http = require('http')
-const hostname = '127.0.0.1';
-const port = 3000;
+import http from 'http';
+import { startRequesting } from './app'
+import app from './server';
 
-const server = http.createServer((req, res) => {
-  res.statusCode = 200;
-  res.setHeader('Content-Type', 'text/plain');
-  res.end('Hello World\n');
+const server = http.createServer(app);
+let currentApp = app;
+
+server.listen(3001, () => {
+  console.log('Server listening on port 3001');
 });
 
-server.listen(port, hostname, () => {
-  console.log(`Server running at http://${hostname}:${port}/`);
-});
-console.log('yes there we go again!!!');
-bigRequest();
+startRequesting();

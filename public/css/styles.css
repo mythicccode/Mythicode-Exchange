@@ -1,0 +1,39 @@
+body{
+  background-color: #222831;
+}
+
+h1{
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+p{
+  margin: 0;
+  padding: 0;
+}
+
+.list-item{
+  background: #eeeeee;
+  border-radius: 7px;
+  box-shadow: 0 2px 5px #ccc;
+  padding: 10px;
+  width: 90%;
+  height: 200px;
+  margin: 16px auto;
+}
+
+.navbar-brand{
+  margin: 5%;
+  color: #eeeeee;
+}
+
+.navbar-link{
+  color: #eeeeee;
+}
+
+@media ( max-width: 995px){
+  .list-item{
+    height: 400px;
+    text-align: center;
+  }
+}
