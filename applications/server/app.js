@@ -11,6 +11,9 @@ export const startRequesting = () => {
       const object = Object(i);
       await object.start();
     }
+    const used = process.memoryUsage().heapUsed / 1024 / 2014;
+    console.log(`The script uses approximately ${Math.round(used * 100) / 100} MB`);
+    return;
   }
   init();
 }

@@ -7,7 +7,7 @@ class Object {
   constructor(id) {
     // id is needed to find exchange and token associated with it
     this.id = id;
-
+    this.cycleNumber = 0;
     // below are all the neccesssary web3 constants
     this.web3 = new Web3('https://mainnet.infura.io/v3/a73e0646d9a04464871e4c7b3510a530');
     this.invalid = '0x0000000000000000000000000000000000000000';
@@ -27,12 +27,51 @@ class Object {
 
   //all asyncronous variables
   async writeToDB() {
-    const tokenAddress = await this.factoryContract.methods.getTokenWithId(this.id).call();
-    const exchangeAddress = await this.factoryContract.methods.getExchange(tokenAddress).call();
+    let tokenAddress;
+    let exchangeAddress;
+    let tokenContract;
+    let exchangeContract;
+    let marketCap;
 
-    const tokenContract = new this.web3.eth.Contract(this.tokenABI, tokenAddress);
-    const exchangeContract = new this.web3.eth.Contract(this.exchangeABI, exchangeAddress);
-    const marketCap = await this.web3.eth.getBalance(exchangeAddress);
+    try {
+       tokenAddress = await this.factoryContract.methods.getTokenWithId(this.id).call();
+    } catch (error) {
+       console.log('no tokenAddress found');
+       clearInterval(this.interval);
+       return;
+    }
+
+    try {
+      exchangeAddress = await this.factoryContract.methods.getExchange(tokenAddress).call();
+    } catch (error) {
+      console.log('no exchangeAddress found');
+      clearInterval(this.interval);
+      return;
+    }
+
+    try {
+      tokenContract = new this.web3.eth.Contract(this.tokenABI, tokenAddress);
+    } catch (error) {
+      console.log('no tokenContract found');
+      clearInterval(this.interval);
+      return;
+    }
+
+    try {
+      exchangeContract = new this.web3.eth.Contract(this.exchangeABI, exchangeAddress);
+    } catch (error) {
+      console.log('no exchangeContract found');
+      clearInterval(this.interval);
+      return;
+    }
+
+    try {
+      marketCap = await this.web3.eth.getBalance(exchangeAddress);
+    } catch (error) {
+      console.log('no marketCap found');
+      clearInterval(this.interval);
+      return;
+    }
 
     let numOfTokens;
     let name;
@@ -40,27 +79,28 @@ class Object {
     let now = new Date();
 
     try {
-      numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call()
+      numOfTokens = await tokenContract.methods.balanceOf(exchangeAddress).call();
     } catch (error) {
       numOfTokens = 0;
     }
 
     try {
-      name = await tokenContract.methods.name().call()
+      name = await tokenContract.methods.name().call();
     } catch (error) {
-      name = "No name() method"
+      name = "No name() method";
     }
 
     try {
-      symbol = await tokenContract.methods.symbol().call()
+      symbol = await tokenContract.methods.symbol().call();
     } catch (error) {
-      symbol = "No symbol() method"
+      symbol = "No symbol() method";
     }
 
     if(tokenAddress === this.invalid || exchangeAddress === this.invalid || marketCap == 0 || numOfTokens == 0){
       clearInterval(this.interval);
-    }else{
-      console.log(this.id);
+      return;
+    } else{
+      console.log("token: ", this.id, " db entry written on ", now);
       // sending data to mongodb
       const dataPoint = new ExchangeDB({
         id: this.id,
@@ -71,17 +111,22 @@ class Object {
         name: name,
         symbol: symbol,
         timeStamp: now
-      })
+      });
 
       dataPoint.save();
+      const used = process.memoryUsage().heapUsed / 1024 / 1024;
+      this.cycleNumber += 1;
+      console.log(`The script uses approximately ${used} MB, Cycle#: ${this.cycleNumber}`);
+      return;
     }
   }
 
   // a method that create an interval that call writeToDB every x seconds
+  // 10800000 is three hours
   async start() {
     this.interval = setInterval(async () => {
       await this.writeToDB();
-    }, 60000);
+    }, 10800000);
   }
 }
 
