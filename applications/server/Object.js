@@ -1,6 +1,8 @@
 import ExchangeDB from './db.js';
 import Web3 from 'web3';
-
+import mongoose from 'mongoose';
+// if you do a whole mongoose.connection.close, it might disconnect for all of the mongoose processes
+// only one way to find out
 class Object {
   // constructs an object with an id
   // all the static variables are here
@@ -37,6 +39,7 @@ class Object {
        tokenAddress = await this.factoryContract.methods.getTokenWithId(this.id).call();
     } catch (error) {
        console.log('no tokenAddress found');
+       mongoose.connection.close();
        clearInterval(this.interval);
        return;
     }
@@ -45,6 +48,7 @@ class Object {
       exchangeAddress = await this.factoryContract.methods.getExchange(tokenAddress).call();
     } catch (error) {
       console.log('no exchangeAddress found');
+      mongoose.connection.close();
       clearInterval(this.interval);
       return;
     }
@@ -53,6 +57,7 @@ class Object {
       tokenContract = new this.web3.eth.Contract(this.tokenABI, tokenAddress);
     } catch (error) {
       console.log('no tokenContract found');
+      mongoose.connection.close();
       clearInterval(this.interval);
       return;
     }
@@ -61,6 +66,7 @@ class Object {
       exchangeContract = new this.web3.eth.Contract(this.exchangeABI, exchangeAddress);
     } catch (error) {
       console.log('no exchangeContract found');
+      mongoose.connection.close();
       clearInterval(this.interval);
       return;
     }
@@ -69,6 +75,7 @@ class Object {
       marketCap = await this.web3.eth.getBalance(exchangeAddress);
     } catch (error) {
       console.log('no marketCap found');
+      mongoose.connection.close();
       clearInterval(this.interval);
       return;
     }
@@ -97,6 +104,7 @@ class Object {
     }
 
     if(tokenAddress === this.invalid || exchangeAddress === this.invalid || marketCap == 0 || numOfTokens == 0){
+      mongoose.connection.close();
       clearInterval(this.interval);
       return;
     } else{
